@@ -1,0 +1,273 @@
+---
+title: "Hunting Season Analysis Boar Data"
+author: "Oliver Eberli and Francis Froborg"
+date: "19.05.2021"
+output:
+  html_document:
+    code_folding: show
+    fig_caption: yes
+    highlight: tango
+    number_sections: no
+    theme: journal
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+---
+
+
+# Set up project
+
+## Needed packages
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+#'* Use eye-friendly comment syntax *
+
+options(scipen=6)         #'* Display digits, not the scientific version *
+options(digits.secs=6)    #'* Use milliseconds in Date/Time data types *
+options(warning=FALSE)    #'* Don't show warnings *
+par(mfrow=c(1,1))         #'* Reset plot placement to normal 1 by 1 *
+
+# ------------------------------------------------------------------------------
+# packages:
+require(sp)
+require(sf)
+require(tidyverse)
+require(sqldf)
+require(readr)
+require(dplyr)
+require(moveVis)
+require(move)
+require(lubridate)
+require(ggmap)
+require(ggplot)
+require(leaflet)
+require(dplyr)
+require(purrr)
+require(knitr)
+
+```
+
+
+## Questions
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+#'* Questions *
+#'* Is gaby and gaby2 the same boar? *
+#'* Only Miri, Sabi and Caro have records for each month *
+#'* Perhaps we have to define a threshold for minimum months? *
+
+
+```
+
+## Load data and data cleaning
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+#'* Load Data *
+wildboar <- read_delim("C:/Users/olive/OneDrive/Desktop/boar/wildschwein_BE_all_raw.csv", delim=",")
+
+#'* Extract month for facet wrap *
+wildboar$month <- month(ymd(wildboar$DatumUTC))
+wildboar$month <- month.name[wildboar$month] # convert month numbers to names
+
+wildboar$day2 <- day(ymd(wildboar$DatumUTC))
+wildboar$dayname<-format(wildboar$DatumUTC, format="%m-%d")
+
+#'* Investigate covered distance during the day categories *
+
+wildboar <- wildboar[wildboar$distance<5000,]
+wildboar <- wildboar[wildboar$day != "Nacht",]
+wildboar <- wildboar[!(is.na(wildboar$day)),] 
+
+#'* Resample wildboar names *
+wildboar$Name <- substring(wildboar$Tier,5,8) #the substring function works due to the fact that all boar names have only 4 letters.
+
+
+
+```
+
+# Analysis
+## Data Overview - leaflet
+
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+#'* We create an SF object to cast points to linestring *
+
+wildboar_sf = st_as_sf(wildboar, coords=c("Long","Lat"))
+
+wildboar_sf <- wildboar_sf %>% 
+  dplyr::group_by(Name, month) %>% 
+  dplyr::summarise() %>%
+  st_cast("LINESTRING")
+
+#'* The SF object is splited to a list by month *
+wildboar.df <- split(wildboar_sf, wildboar_sf$month)
+
+#'* Generate color palette for leaflet *
+factpal <- colorFactor(topo.colors(20), wildboar$Name)
+
+#'* Leaflet map with baseGroups to get an overview *
+boarMap <- leaflet() %>% addTiles()
+names(wildboar.df) %>%
+  purrr::walk( function(df) {
+    boarMap <<- boarMap %>%
+      addPolylines(data = wildboar.df[[df]],
+                   label=~as.character(Name),
+                   popup=~as.character(Name),
+                   group = df,
+                   color = ~factpal(Name),
+                   fillOpacity = 1,
+                   smoothFactor = 0.2
+                   )
+  })
+
+boarMap %>%
+  addLayersControl(
+    baseGroups = names(wildboar.df),
+    options = layersControlOptions(collapsed = FALSE)
+  )
+
+
+```
+
+## Descriptive Analysis
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+#'* Investigate mean speed *
+wildboarDays <- wildboar %>%
+  group_by(Name, DatumUTC)%>%
+  summarise(         
+    mean_speed = mean(speed,na.rm=T)
+  )
+
+#'* Overview of the different timespans for each boar *
+#'* Question: There are different records included. Can we merge them? *
+ggplot(wildboarDays, aes(x=DatumUTC, y=Name)) +
+  geom_point() + 
+  theme_classic()
+
+#'* Investigate available months by boar *
+#'* Only Miri, Sabi and Caro have records for each month *
+#'* Perhaps we have to define a threshold for minimum months *
+wildboarmonth <- wildboar %>%
+  group_by(Name) %>%
+  summarise(n_distinct(month))
+
+kable(wildboarmonth, caption = "Overview of the boars and the available months")
+```
+
+
+## Seasonal Density Heatmaps
+
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+#'* Extract month for facet wrap *
+wildboar$month <- month(ymd(wildboar$DatumUTC))
+wildboar$day2 <- day(ymd(wildboar$DatumUTC))
+wildboar$dayname<-format(wildboar$DatumUTC, format="%m-%d")
+
+#'* With density maps the seasonal patterns can be detected. *
+
+#'* Define boundingbox (region Neuenburg/Murten and load an OSM basemap*
+sbbox <- make_bbox(lon = c(6.973915, 7.129238), lat = c(46.96355, 47.025072), f = .1)
+wildRegion <- get_map(location = sbbox, color = "bw", source = "osm")
+wildRegion <- ggmap(wildRegion)
+
+#'* create density maps for each month*
+wildRegion + stat_density2d(aes(x = Long, y = Lat, fill = ..level..), alpha = 0.25, bins = 50, data = wildboar, geom = "polygon") +
+  scale_fill_gradient(low = "black", high = "red") +
+  facet_wrap(~ month) +
+  theme_bw() + 
+  theme(legend.position="none")
+
+#'* create density maps for day category*
+wildRegion + stat_density2d(aes(x = Long, y = Lat, fill = ..level..), alpha = 0.25, bins = 50, data = wildboar, geom = "polygon") +
+  scale_fill_gradient(low = "black", high = "red") + 
+  facet_wrap(~ day) +
+  theme_bw() + 
+  theme(legend.position="none")
+
+
+```
+
+## Walking distance by month and day stages
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+
+#'* Investigate covered distance during the day categories *
+wildboarDistance <- wildboar %>%
+  group_by(day) %>%
+  summarise(         
+    mean_distance = mean(distance,na.rm=T),
+    sum_distance = sum(distance,na.rm=T),
+    median_distance = median(distance,na.rm=T)
+
+  )
+
+kable(wildboarDistance, caption = "Day stages with mean, sum and median covered distance")
+
+
+#'* Investigate covered distance during the day categories *
+wildDay <- wildboar %>%
+  group_by(month, day2, day) %>%
+  summarise(         
+    mean_distance = mean(distance,na.rm=T),
+    sum_distance = sum(distance,na.rm=T),
+    median_distance = median(distance,na.rm=T)
+
+  )
+
+ggplot(wildDay, aes(x = day2, y = mean_distance)) + 
+  geom_line(aes(color = day, linetype = day)) + 
+  scale_color_manual(values = c("dodgerblue", "cornflowerblue", "darkorchid", "mediumorchid" , "turquoise", "darkorange", "goldenrod")) +
+  facet_wrap(~ month) +
+  theme_bw() +
+  labs(title="Mean walking distance of all tracked wildboars for each month",
+        x ="Days [d]", y = "Mean walking distance [m]")
+
+
+
+```
+
+
+
+
+## Additional: Generate GIF of time and spatial distribution
+
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+#'* Generates a GIF of the spatial and temporal distribution. Markdown isn't able to process: Resolving timed out *
+
+# 
+# wildboar_move <- wildboar
+# wildboar_move <- df2move(wildboar_move,
+#         proj = "+init=epsg:4326 +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", 
+#         x = "Long", y = "Lat", time = "ZeitpUTC", track_id = "Tier")
+# 
+# 
+# # align move_data to a uniform time scale
+# m <- align_move(wildboar_move, res = 1440, unit = "mins")
+# 
+# # create spatial frames with a OpenStreetMap watercolour map
+# frames <- frames_spatial(m, path_colours = c("red", "green", "blue","goldenrod","darkolivegreen1","indianred","indianred2","gray95","khaki","ivory","orange","beige","navy","hotpink3","brown2","brown","gainsboro","azure","aquamarine","cyan","firebrick","darkcyan","darkkhaki"),
+#                          map_service = "osm", map_type = "watercolor", alpha = 0.5) %>%
+#   add_labels(x = "Longitude", y = "Latitude") %>% # add some customizations, such as axis labels
+#   add_northarrow() %>%
+#   add_scalebar() %>%
+#   add_timestamps(m, type = "label") %>%
+#   add_progress()
+# 
+# # animate frames
+# animate_frames(frames, out_file = "moveVis.gif")
+
+
+```
+
+
