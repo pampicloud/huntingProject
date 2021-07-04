@@ -1,5 +1,5 @@
 ---
-title: "Impact of Hunting Season on Movement Patterns of Wild Boar"
+title: "Impact of Hunting Season on Movement Patterns of Wild Boar in Switzerland"
 author: "Oliver Eberli and Francis Froborg"
 date: "02.07.2021"
 output:
@@ -15,16 +15,16 @@ output:
   pdf_document:
     toc: yes
     toc_depth: '2'
+bibliography: bibliography.bib
+link-citations: true 
 ---
 
-
+```{=html}
 <style>
   body {
   text-align: justify}
 </style>
-
-
-
+```
 ```{r, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
 
 options(scipen=6)         #'* Display digits, not the scientific version *
@@ -54,6 +54,7 @@ require(ComputationalMovementAnalysisData)
 require(DT)
 require(hrbrthemes)
 require(viridis)
+library(forcats)
 
 
 # devtools::install_github("dkahle/ggmap") 
@@ -62,41 +63,69 @@ require(viridis)
 ```
 
 # Abstract
-The increasing size of the wild boar population causes ecological impacts in natural environments and tremendous economic losses in agriculture. The research objective is to get insights about the association between hunting season and the spatial and temporal distribution. Furthermore activity patterns are investigated such as travelled distances and speed patterns. Moreover to detect hunting season associations the overall seasonal patterns are investigated. With density heatmaps the spatial and temporal distribution is investigated. For the speed patterns and travelled distances investigation the trajectory segmentation is applied. Speed and travel distance are investigated by month and day phases with the associated hunting pressure. The key results are that the association between hunting and wild boar activity remains difficult to assess. Nevertheless diurnal patterns are detected that are also found in the literature: wild boar activity is higher during the night than throughout the day.
 
+The increasing size of the wild boar population causes ecological impacts in natural environments and tremendous economic losses in agriculture. The research objective is to understand if there are changes in the movement patterns during the hunting season. Such knowledge could potentially be used to reduce ecological impacts or improve hunting strategies. Associations between hunting season and the spatial as well as temporal distribution are used together with activity patterns such as traveled distances and speed patterns. Moreover, to detect hunting season associations the overall seasonal patterns are investigated. With density heatmaps the spatial and temporal distribution is investigated. For the speed patterns and traveled distances investigation the trajectory segmentation is applied. Speed and travel distance are investigated by month and day phases with the associated hunting pressure. The key results are that the association between hunting and wild boar activity remains difficult to assess. Nevertheless diurnal patterns are detected that are also found in the literature: wild boar activity is higher during the night than throughout the day.
 
 Keywords: GPS, wild boar, hunting, density heatmaps, animal speed
 
 # Introduction
 
-Wild Boar (Sus scrofa L.) populations have increased in size at a remarkable rate throughout their European range since the 1980s. In addition, the animals have migrated naturally into new areas or have been mistakenly reinstated by individuals escaping from farms (Macdonald, 2001). Besides causing ecological impacts in natural environments, expansion into territories where animals were not previously found can cause tremendous economic losses in agriculture and forestry (Pimentel et al., 2001). Fischer et al. (2004) stress that the damage increased dramatically since the 1990s. The wild boar, the fifth largest ungulate species in Europe, is an animal that has such a far-reaching influence on both natural and anthropogenic areas (Niethammer & Krapp, 1986). Relatively little is known about how hunting impacts the behaviour of the wild boar, which is now regaining large parts of Europe (Thurfjell et al. 2009). Hiding and running away are the two main responses to disturbance by hunting of the wild boars (Sodeikat and Pohlmeyer 2003).
+Wild Boar (Sus scrofa L.) populations have steadily increased in size across Europe since the 1980s [@massei2015]. Reasons include a high reproductive rate of up to 2.0 [@bieber2005; @keuling2013], limited natural mortality, which can be caused by the wolf (Canis lupus) [@nores2008], diseases [@rossi2011], or starvation due to extreme weather conditions [@okarma1995]. Global warming is expected to further intensify this trend [@melis2006]. This leaves hunting, and to a lesser extent road traffic accidents, as the main contributors to wild boar mortality [@keuling2013; @nores2008; @toiga2008].
 
+The wild boar population did not only expanded in density but also in geographical range [@segura2014]. Migration into new areas also occurred due to populations which have been mistakenly reinstated by individuals escaping from farms [@macdonald2001]. Besides causing ecological impacts in natural environments, expansion into territories where animals were not previously found can cause tremendous economic losses in agriculture and forestry [@pimentel2001]. @fischer2004 stress that the damage increased dramatically since the 1990s. The wild boar, the fifth largest ungulate species in Europe, is an animal that has a far-reaching influence on both natural and anthropogenic areas [@niethammer1986].
+
+The impact of hunting on the wild boar is often indirectly tracked by patterns of wild boar related damage to the flora. @thurfjell2009 added GPS data to his analysis, which is, however, not focussing on the influence of the hunting season and is also limited to Sweden. Since seasonal variations are expected to be influenced by temperature, the findings of this study cannot easily applied to Switzerland. A study from Lower Saxony in Germany found hiding and running away as the two main responses to disturbance by hunting of the wild boars [@sodeikat2003]. However, drive hunts were investigated in this study which has only limited application in Switzerland, where hunting is dominated by blind hunting.
+
+As a result there is currently limited knowledge on the influence of hunting on movement patterns of wild boar. Such knowledge could potentially be used to reduce ecological impacts or improve hunting strategies.
 
 # Research Questions
 
 This paper intense to address the lack of understanding of how hunting affects the behaviour and the movement patterns of wild boar. Specifically the focus is to investigate the following research questions (RQ) and hypotheses (H).
 
-* RQ 1: Is there an overall shift in active areas when hunting season starts or during hunting season?
-  + H 1.1: The wild boars activity area (spatial and temporal distribution) is different during and before/after hunting season.
-  + H 1.2: During the hunting season the diurnal (spatial, temporal and activity) rhythms differ during and before/after hunting season diurnal rhythms.
+-   RQ 1: Is there an overall shift in active areas when hunting season starts or during hunting season?
 
-* RQ 2: Are there short or medium term effects related to hunting similar to scare off measures?
-  + H 2.1: Hunting leads to higher speeds and higher covered distances due to animal fleeing.
-  + H 2.2: The activity levels are higher due to (constant) hunting disturbances.
-  
+    -   H 1.1: The wild boars activity area (spatial and temporal distribution) is different during and before/after hunting season.
+    -   H 1.2: During the hunting season the diurnal (spatial, temporal and activity) rhythms differ during and before/after hunting season diurnal rhythms.
+
+-   RQ 2: Are there short or medium term effects related to hunting similar to scare off measures?
+
+    -   H 2.1: Hunting leads to higher speeds and higher covered distances due to animal fleeing.
+    -   H 2.2: The activity levels are higher due to (constant) hunting disturbances.
 
 The implemented analysis and code can be displayed by clicking the code button on the right side of the analysis. First, the available data is explored and investigated. Next step includes the description of the used methods in this paper. Afterwards, the results are presented and are further discussed in the last section. Also, the limitations are listed.
 
-# Data
+# Materials and Methods
+
+## Study Area
+
+The study area is located at the north east bank of Lake Neuchâtel (N 1197562 - 1207630, E 2564229-2577023 CH1903+ / LV95 (EPSG 2056)), which touches three Swiss cantons: Bern, Neuchâtel and Vaud. The area is covered by four main habitat types: agricultural land, forest, open areas like pastures or meadows, and wetlands. The study area contains protective areas.
+
+Specific hunting activities are not recorded in this area since it is regulated by seasonal permits. Hunting season typically lasts from August until January with each canton having specific regulations regarding [the details](#sec:HuntingSeason).
+
+## Position data
+
+The used data set contains the positions of 19 different wildboar, tagged between 2014-05-28 21:01:14 UTC and 2016-10-18 02:00:43 UTC in the context of a research project at ZHAW investigating different repelling systems to protect land crop from wild boar [@zhaw]. GPS collars were used which typically recorded the position of the animals every 15min. In some cases the collars had to be replaced during the study period. To nonetheless be able to properly assign the data to the correct animal, all wild boar received names. Further details can be found in Section [Data](#sec:Data).
+
+Additionally, the research project also provided information regarding the different habitats and crops in the study area. This data set is limited in the sense that it has no temporal component as well. As a result, each spatial area is tagged with one type of habitat or crop, although especially agricultural areas might change throughout the year.
+
+## Methods
+
+Different methods were explored to answer the RQs: seasonal density heatmaps to investigate the seasonal impact of the hunting season on the spatial distribution, calculate traveled distances by animal over time to examine the changes of habitats and analysis of speed distribution.
+
+Density heatmaps are used to answer RQ 1. Within spatial statistics, the visualization of data with their basic landmarks and geographic context is essential [@kahle2013]. With the density heatmaps seasonal differences can be investigated. Density heatmaps are made for each month and day phase.
+
+In order to answer the RQ 2 and 3 it is necessary to have the information about the different trip segments. [@laube2011] introduced one segmentation method. With static fixes as "those whose average Euclidean distance to other fixes inside a temporal window v is less than some threshold d," the trajectories segmenting is done. However, this method is applied and considered that the data set consists of more than one animal. The applied analysis allows the interpretation and comparison between different months and seasonal characteristics.
+
+# Data {#sec:Data}
+
 ## Dataset
 
-The wild boar data is provided by the ZHAW and is used for the course: Patterns and trends in environmental Data - Computational Movement Analysis.
+The used data set contains the positions of 19 different wildboar, tagged between 2014-05-28 and 2016-10-18 in an area at the north east bank of Lake Neuchâtel
 
 Table 1 shows all the available different wild boar animals of the data set. It is possible to investigate the different variables interactively. Moreover, the GPS trajectories of all animals are available. In Table 2 a simple subset of the data is shown. A consistent sampling rate is not available.
 
-
-
 Table 1: Wild boar metadata interactive searchable.
+
 ```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 
 DT::datatable(wildschwein_metadata)
@@ -104,15 +133,16 @@ DT::datatable(wildschwein_metadata)
 
 ```
 
-* TierID: The unique identifier for the animal
-* TierName: Name of the ANmial
-* CollarID: The used collars have their own ID 
-* Datetime
-* Coordinates
-* day: day phases
-* moonilumination: Important to define full moon occurances.
+-   TierID: The unique identifier for the animal
+-   TierName: Name of the ANmial
+-   CollarID: The used collars have their own ID
+-   Datetime
+-   Coordinates
+-   day: day phases
+-   moonilumination: Important to define full moon occurances.
 
 Table 2: Available GPS trajectories and the given data structure.
+
 ```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 # Include date information
 wildschwein_BE <- wildschwein_BE %>%
@@ -125,11 +155,9 @@ head(wildschwein_BE)
 
 ```
 
-
 ## Data Exploration
+
 For various reasons, not all animals were tracked over the entire time. In Figure 1 it is investigated for which months data is available per animal. This is cross-correlated with the hunting season to make sure that only animals with data from both periods, hunting and no hunting, is included in the study.
-
-
 
 ```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.show="hold", out.width="45%", fig.cap= "Figure 1: Left) Overview of all available GPS trajectories for each wild boar. Right) Overview of the available month by each boar."}
 
@@ -154,23 +182,21 @@ wildschwein_BE %>%
 
 ## Defining Subsample {#sec:subsample}
 
-Hunting season is roughly from August to January, with the main season from November to January (details see Section 6.1). As such, we will include only animals where we have date covering the main hunting season as well as at least two months outside of the hunting season. As a result, we will use the data from:
+Hunting season is roughly from August to January, with the main season from November to January (details see [Section 6.1](#sec:HuntingSeason). As such, we will include only animals where we have date covering the main hunting season as well as at least two months outside of the hunting season. As a result, we will use the data from:
 
-* Sabine, Miriam, and Caroline: covering January - December (12 months)
+-   Sabine, Miriam, and Caroline: covering January - December (12 months)
 
-* Amos: covering July to April (10 months)
+-   Amos: covering July to April (10 months)
 
-* Ruth: covering November until July (9 months)
+-   Ruth: covering November until July (9 months)
 
-* Rosa: covering November until June (8 months)
+-   Rosa: covering November until June (8 months)
 
 Except for Amos, all of these animals are female. As a result, we will not have sufficient statistics to study potential differences in the behaviour of male and female wild boar.
 
-
 ## Spatial and Temporal Distribution
+
 With the investigation of the temporal data availability and the discussed conditions in Section 4.3 the subsample can be defined. Accordingly, the spatial and temporal distribution can be investigated to get an overview of the available data. Moreover, it is possible to interact with the leaflet application and to compare different months. It is observable that the wild boars move between Lake Neuchâtel and Lake Murten.
-
-
 
 ```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 # Generate subsample
@@ -215,18 +241,9 @@ boarMap %>%
 
 ```
 
-
-
-
-
-# Methods
-Different methods were explored to answer the RQs: seasonal density heatmaps to investigate the seasonal impact of the hunting season on the spatial distribution, calculate travelled distances by animal over time to examine the changes of habitats and analysis of speed distribution.
-Density heatmaps are used to answer RQ 1. Within spatial statistics, the visualization of data with their basic landmarks and geographic context is essential (Kahle and Wickham (2013)). With the density heatmaps seasonal differences can be investigated. Density heatmaps are made for each month and day phase. 
-In order to answer the RQ 2 and 3 it is necessary to have the information about the different trip segments. Laube and Purves (2011) introduced one segmentation method. With static fixes as “those whose average Euclidean distance to other fixes inside a temporal window v is less than some threshold d," the trajectories segmenting is done. However, this method is applied and considered that the data set consists of more than one animal. The applied analysis allows the interpretation and comparison between different months and seasonal characteristics.
-
 # Results
 
-## Defining Hunting Season
+## Defining Hunting Season {#sec:HuntingSeason}
 
 The habitat of the wild boars lies within three different political districts and each district has its own hunting regulations. In Table 4 a meta-analysis of the different hunting regulations is shown. Hunting season will be marked as none, low, medium, or high, depending on month and time of day. The following table shows the exact details of these regulations together with details how this was modeled in this analysis. Noteworthy is that full moon is a key element of defining the hunting season and is further investigated in Section 6.2.
 
@@ -256,7 +273,6 @@ The habitat of the wild boars lies within three different political districts an
 
 : Table 4: Hunting regulations in relevant cantons including indicator for hunting season (HS) and which day times this indicator will receive in the data.
 
-
 With the gathered information about hunting regulations the GPS trajectories are enriched with the information about the hunting exposure.
 
 ```{r marker hunting season}
@@ -280,16 +296,14 @@ ws_final <- ws_final %>% mutate(day = factor(day,
 
 ```
 
-
-
 ## Full moon detection
 
 From November to January hunting can be done in the nights 6 days before and 4 days after full moon. The data includes a information on moon illumination that can be used to determine when full moon occurs and select the relevant days.
 
 A simple cut as used above on "moon illumination" is giving exactly the required 10 days around full moon. However, filtering the correct days in a somewhat automated way would require a much more sophisticated algorithm (e.g. peak finder on distribution of "moon illumination" to determine full moon or pairing the data with a calendar). The gain in precision was found to be smaller than the overall uncertainties and variations in this study and therefore decided that the simplified cut is sufficient.
 
+Table 3: Full moon day for each month detected with moon illumination \>0.75.
 
-Table 3: Full moon day for each month detected with moon illumination >0.75.
 ```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 
 fullmoondays <- ws_final %>%
@@ -301,13 +315,80 @@ DT::datatable(fullmoondays)
 
 ```
 
+## Visited Habitats and Crops
+
+The hunting season might influence the preferred habitat or crop of the wild boar. To investigate this question, the visits of each animal to the different habitats and crops is correlated with the hunting season and its different intensities. This is shown in Figure 2.
+
+Since seasonality in general and availability of the different crops can also have an influence the number of visits per animal and month are also studied. This is shown in Figure 3. Both plots only show the most frequently visited habitats and crops. It has to be pointed out that "others" also include those areas where no habitat or crop information was available ("n/a").
+
+The first thing that stands out is that each animal has different preferences and that there are no obvious commonalities between all of them. There is also no clear influence of the hunting season since low and high hunting activities tend to have similar patterns. The difference in visited crops and habitats when no hunting takes place can mostly be explained by availability of crops in spring & summer that are not or less available during fall and winter.
+
+```{r habitats hunting, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap= "Figure 2: Visited habitats for the different hunting levels and for each animal. Agriculture is detailed by crop type. Shown are only the most important habitats and crops."}
+fields <- read_sf("./Feldaufnahmen_Fanel.gpkg")
+
+# Join wild boar data set with field information based on coordinates
+ws_filter_st <- st_as_sf(ws_final, coords = c("E", "N"), crs = 2056)
+ws_join <- st_join(x=ws_filter_st, y=fields)
+
+# Check visited habitats in different hunting seasons
+ws_sum_hunt <- ws_join %>%
+  st_drop_geometry() %>%
+  mutate(Frucht = ifelse(is.na(Frucht),"other",Frucht),
+    Frucht = fct_lump(Frucht, 7,other_level = "other"),
+    ) %>%
+  group_by(TierName, Frucht, hunting) %>%
+  summarise(n=n()) %>%
+  group_by(TierName, hunting) %>%
+  mutate(n_tot=sum(n), 
+         n_rel=n/n_tot) %>%
+  ungroup() %>%
+  mutate(
+    Frucht = fct_reorder(Frucht, n,sum, desc = TRUE)
+  )
+
+# Polar plot for results
+ggplot(ws_sum_hunt, aes(hunting, n_rel, fill=Frucht)) +
+  geom_col() +
+  coord_polar() +
+  facet_wrap(~TierName)  +
+  theme_bw() + labs(x="Month", y="Number of visits")
+
+```
+
+```{r habitats month, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap= "Figure 3: Visited habitats for each month and animal. Agriculture is detailed by crop type. Shown are only the most important habitats and crops." }
+
+# Check visited habitats each month
+ws_sum_month <- ws_join %>%
+  st_drop_geometry() %>%
+  mutate(
+    Frucht = ifelse(is.na(Frucht),"other",Frucht),
+    Frucht = fct_lump(Frucht, 7,other_level = "other"),
+    ) %>%
+  group_by(TierName, Frucht, month) %>%
+  summarise(n=n()) %>%
+  group_by(TierName, month) %>%
+  mutate(n_tot=sum(n), 
+         n_rel=n/n_tot) %>%
+  ungroup() %>%
+  mutate(
+    Frucht = fct_reorder(Frucht, n,sum, desc = TRUE)
+  )
+
+# Polar plot for results
+ggplot(ws_sum_month, aes(month, n_rel, fill=Frucht)) +
+  geom_col() +
+  coord_polar() +
+  facet_wrap(~TierName) +
+  theme_bw() + labs(x="Month", y="Number of visits")
+
+```
+
 
 ## Seasonal and Diurnal Density Heatmaps
 
 After the reprojection and transformation it is possible to apply the ggmap function (ggmap cannot consume LV95). In Figure 2 the density heatmaps for each month including all GPS trajectories of all wild boars are shown. To answer H1.1 the density heatmaps are needed: with the density heatmaps it is possible to get information about the spatial and temporal distribution of the wild boar data for each month. Moreover, plotting each month allows to compare month during and before/after hunting season.
 
-
-```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap= "Figure 2: Density heatmaps for each month including all GPS trajectories of all wild boars. Coordinates are transformed into WGS84 due to the fact that the ggmap function cannot consum LV95."}
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap= "Figure 4: Density heatmaps for each month including all GPS trajectories of all wild boars. Coordinates are transformed into WGS84 due to the fact that the ggmap function cannot consum LV95."}
 
 # Reproject data to use it for leaflet
 ws_final_wgs84 <- st_transform(ws_final_lv95, 4326)
@@ -346,12 +427,9 @@ wildRegion + ggplot2::stat_density2d(aes(x = lon, y = lat, fill = ..level..), da
 
 ```
 
-
 The density heatmaps for each day phase are on key method to answer H1.2: during the hunting season the diurnal (spatial, temporal and activity) rhythms differ before/after hunting season diurnal rhythms. With the density heatmaps the spatial and temporal distribution can be investigated. Plotting by day phase allows to compare the different day stages with each other.
 
-
-
-```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap="Figure 3: Density heatmaps for each day phase including all GPS trajectories of all wild boars."}
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap="Figure 5: Density heatmaps for each day phase including all GPS trajectories of all wild boars."}
 
 
 #'* create density maps for day category*
@@ -363,10 +441,9 @@ wildRegion + stat_density2d(aes(x = lon, y = lat, fill = ..level..), alpha = 0.2
 
 ```
 
+## Traveled Distances and Speed by Animal
 
-## Traveled Distances by Animal
-
-In order to answer RQ 2 the travelled distance by animal is investigated. The travelled distances give insights if hunting leads to higher speeds and higher covered distances due to animal fleeing. Accordingly, the GPS trajectories are enriched with the speed and travelled distance information. For the analysis the trip segmentation method is applied that is described in the methods section. Moreover, the speed information is calculated out of the distance and the time difference.
+In order to answer RQ 2 the traveled distances and speed by animal is investigated. Both parameters might give insights if hunting leads to higher speeds and/or higher covered distances due to animal fleeing. Accordingly, the GPS trajectories are enriched with the speed and traveled distance information. For the analysis the trip segmentation method is applied that is described in the methods section. Moreover, the speed information is calculated out of the distance and the time difference.
 
 ```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 # Calculate distances between different steps with step width between 1 - 3 using both, lag and lead. Calculated than the mean of these distances and plot the result as histogram. Save only the distance and also include a marker if the segment is considered static or not.
@@ -425,10 +502,10 @@ ws_final <- ws_final %>%
 
 ```
 
-
-In order to get insights about the travelled distance the mean, sum and median travelled distances are calculated for each day phase. In Table 5 It is possible to sort the variables in ascending or descending order. Due to the lack of information about the definition of the day phase (e.g., specific times) the sum isn't an useful indicator. With mean and median travelled distance it is possible to get insights about the overall distribution of the travelled distances by day phase between two observations. The mean and median travelled distances are significantly higher than during the day. Only at dawn the values are even smaller than during the day.
+In order to get insights about the traveled distance the mean, sum and median traveled distances are calculated for each day phase. In Table 5 It is possible to sort the variables in ascending or descending order. Due to the lack of information about the definition of the day phase (e.g., their duration) the sum could not be properly normalized. As such this indicator has to be carefully with this in mind. With mean and median traveled distances it is possible to get insights about the overall distribution of the traveled distances by day phase between two observations. The mean and median traveled distances are significantly higher than during the day. Only at dawn the values are even smaller than during the day.
 
 Table 5: Day phases with mean, sum and median traveled distances.
+
 ```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 #'* Investigate traveled distance during the day categories *
 ws_final_distance <- ws_final %>%
@@ -444,11 +521,9 @@ DT::datatable(ws_final_distance)
 
 ```
 
+Mean traveled distance combined of all wild boars for each month and day phase are shown in Figure 4. The traveled distance gives insights about high and low activity levels. These activities are also found in the literature as @thurfjell2014 states higher activities during the night and lower activates throughout the day, in agreement with our findings.
 
-Mean travelled distance combined of all wild boars for each month and day phase are shown in Figure 4. The travelled distance gives insights about high and low activity levels. These activities are also found in the literature. Thurfjell et al. (2014) state higher activities during the night and lower activates throughout the day.
-
-```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap= "Figure 4: Mean walking distance of all tracked wildboars for each month."}
-
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap= "Figure 6: Median walking distance of all tracked wildboars for each month."}
 
 #'* Investigate covered distance during the day categories *
 wildDay <- ws_final %>%
@@ -464,15 +539,13 @@ ggplot(wildDay, aes(x = daymonth, y = mean_distance)) +
   theme_bw() +
   labs(x ="Days [d]", y = "Mean traveled distance [m]")
 
-
-
 ```
 
-The variability during the day phases is more visible with the boxplot comparison. During the day the activity is low and increases during the different night stages. All blue and violet lines represent activities during the night. Noteworthy is the overall activity low during the mid of September. Highest activities are recorded during November and December. 
+Activity levels seem to be lower between mid-April until end of June that could potentially be related to less hunting activity or the fact, that food is easier available due to agricultural activities. This is unclear from the available data. Most striking is, however, the dip in activity for about a week in September. The authors have no explanation for this drop in covered distance.
 
-```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+The variability during the day phases is more visible with the boxplot comparison. During the day the activity is low and increases during the different night stages. All blue and violet lines represent activities during the night. Noteworthy is the overall activity low during the mid of September. Highest activities are recorded during November and December.
 
-
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap= "Figure 7: Median walking distance of all wildboars at the different diurnal phases."}
 
 ws_final %>%
   ggplot( aes(x=day, y=stepMean, fill=day)) +
@@ -485,17 +558,11 @@ ws_final %>%
     ) +
   labs(x="Day phase", y="Median traveled distance [m]") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-
-
 ```
 
+Figure 8 shows how the covered distances relate not only to diurnal and seasonal phases but also the different hunting levels. The plot shows total values of the median traveled distance per month and hunting season together with the medians per hunting level over all months to highlight differences throughout the year. Again, there are striking differences per animal with Caroline for example showing significantly larger distances traveled during high hunting activities while Sabine and Ruth are quite the opposite. The reason is currently unclear and requires further investigations.
 
-
-
-
-
-
-```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap= "Figure 8: Median walking distance of individual wildboars for each month and hunting activity."}
 
 
 # Calculate median per month and hunting season
@@ -525,10 +592,11 @@ ws_dist_month %>%
   
 ```
 
+Figure 9 shows how the median speed relate not only to diurnal and seasonal phases but also the different hunting levels. The plot shows total values of the median speed per month and hunting season together with the medians per hunting level over all months to highlight differences throughout the year.
 
+Again, there are striking differences per animal and these differences cannot even be related to the traveled distances as shown in Figure 8. For example, Ruth showed lower traveled distances during high hunting activites but also runs faster in this phase. Agian, the reason is currently unclear and requires further investigations.
 
-
-```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, fig.cap= "Figure 9: Median speed of individual wildboars for each month and hunting activity."}
 # Calculate median per month and hunting season
 ws_speed_month <- ws_final %>%
   filter(!static & speed < 60) %>%
@@ -559,49 +627,45 @@ ws_speed_month %>%
 
 # Limitations
 
-The analysed GPS trajectories in this paper have no consistent sampling rate. However, this rate is not perfectly suitable to analyse associations between hunting and moving patterns such as fleeing, speed variations or travelled distance. The information between two observations can only assumed.  Moreover, the data coverage is rather low and the sample size with six animals is too small to get significant results. The investigation of the wild boar hunting season is difficult to assess due to the fact that the habitat of the wild boars lies within three different political districts. In other words, three different hunting regulations have to be considered and therefore it is difficult to define the hunting season for this area. Furthermore Thurfjell et al. (2014) stress that the movement speed of wild boar is impacted by daylight, season, and weather. During the night and high temperatures higher movement speed is recorded and snow and precipitation lead to lower movement speed. This analysis didn't include any weather information.
+The analyzed GPS trajectories in this paper have no consistent sampling rate. However, this rate is not perfectly suitable to analyze associations between hunting and moving patterns such as fleeing, speed variations or traveled distance. The information between two observations can only assumed. Moreover, the data coverage is rather low and the sample size with six animals is too small to get significant results.
 
+The investigation of the wild boar hunting season is difficult to assess due to the fact that the habitat of the wild boars lies within three different political districts. In other words, three different hunting regulations have to be considered and therefore it is difficult to define the hunting season for this area. To improve on this point it would be helpful to correlate the data with actual killings due to hunting or potentially even car accidents in the region. Each of these events would ideally be tracked with position and time.
 
+Furthermore @thurfjell2014 stress that the movement speed of wild boar is impacted by daylight, season, and weather. During the night and high temperatures higher movement speed is recorded and snow and precipitation lead to lower movement speed. This analysis didn't include any weather information.
 
 # Discussion
 
-This paper intended to provide answers on the association between hunting season and spatial and temporal distribution of wild boars. Furthermore a research goal is to investigate the short or medium term effects related to hunting with focus on speed and travelled distance.
+This paper intended to provide answers on the association between hunting season and spatial and temporal distribution of wild boars in Switzerland. Furthermore a research goal is to investigate the short or medium term effects related to hunting with focus on speed and traveled distance.
 
-The main hunting season is detected and defined between November and January. It was necessary to have wild boar data during and before/after the hunting season. For this purpose the available GPS trajectories are investigated. An overview of all available trajectories for each boar and an overview of the available months by each boar is used to define the wild boar selection. After the data exploration 6 out of 19 animals are used for all further analysis in this paper. Except for Amos, all of these animals are female. As a result, it is not possible to have sufficient statistics to study potential differences in the behaviour of male and female wild boar. According to the leaflet application with the spatial and temporal distribution of the wild boar sample the home ranges are always similar and only different during April. 
+The main hunting season is detected and defined between September and January with highest hunting activities expected to happen between Novemer and January. It was necessary to have wild boar data during and before/after the hunting season. For this purpose the available GPS trajectories are investigated. An overview of all available trajectories for each boar and an overview of the available months by each boar is used to define the wild boar selection. After the data exploration 6 out of 19 animals are used for all further analysis in this paper. Except for Amos, all of these animals are female. As a result, it is not possible to have sufficient statistics to study potential differences in the behaviour of male and female wild boar. According to the leaflet application with the spatial and temporal distribution of the wild boar sample the home ranges are always similar and only different during April.
 
-The first hypothesis of research question one can be investigated with the monthly density heatmaps. The hypothesis states that the wild boar activity (spatial and temporal distribution) is different during hunting season than before or after hunting season. With the defined hunting season (November - January) there is not spatial or temporal association possible. Rather it is a seasonal pattern visible. Early in the year the wild boars home range is always location near the shore. During spring the wild boars move further inland. In the later months of the year no distribution pattern is detected. For the second hypothesis that during the hunting season the diurnal (spatial, temporal and activity) rhythms differ during and before/after hunting season diurnal rhythms the density heatmaps for each day phase deliver important insights. As mentioned the activity is lower during the day. This can be verified with the density heatmaps. During the day phase the spatial distribution is denser than during the night. Furthermore the activity ranges during all night phases
+## Findings regarding Research Question 1
 
+The first research question investigated if there isan overall shift in active areas when hunting season starts or during hunting season.
 
------
+The first hypothesis was investigated with the monthly density heatmaps. The hypothesis states that the wild boar activity (spatial and temporal distribution) is different during hunting season than before or after hunting season. With the defined hunting season (November - January) there is no spatial or temporal association possible. Rather it is a seasonal pattern visible. Early in the year the wild boars home range is always location near the shore. During spring the wild boars move further inland. In the later months of the year no distribution pattern is detected. A potential explanation can be the availability of certain crop types preferred by the wild boar as the visited crops change throughout the year.
 
-Discussion research question 2 and hypotheses.
+For the second hypothesis that during the hunting season the diurnal (spatial, temporal and activity) rhythms differ during and before/after hunting season diurnal rhythms the density heatmaps for each day phase deliver important insights. As mentioned the activity is lower during the day. This can be verified with the density heatmaps. During the day phase the spatial distribution is denser than during the night. Furthermore the activity ranges during all night phases
 
------
+## Findings regarding Research Question 2
 
-Conclusively it is apparent that there are seasonal patterns in the activity and the spatial and temporal are present. However, it is difficult these patterns to associate directly with the hunting season. Due to the fact that it is difficult to associate the activity behaviour with hunting events. Moreover, the data sampling with 6 animals is rather low. Although similar results are achieved that are discovered in the literature. The overall activity of the wild boars is higher than during the day (Thurfjell et al. (2014)).
+RQ 2: Are there short or medium term effects related to hunting similar to scare off measures?
 
+    H 2.1: Hunting leads to higher speeds and higher covered distances due to animal fleeing.
+    H 2.2: The activity levels are higher due to (constant) hunting disturbances.
+
+The second research question investigated short and medium term effects related to hunting similar to scare off measures. In this study it could not be confirmed that hunting activities indeed lead to higher speeds and larger covered distances due to the animals fleeing. The findings were quite different for each animal and no overarching pattern could be found. As such, H 2.1 could neither be validated nor falsified. Further investigations with more and more detailed data is required in this case.
+
+Similarly, it could not conclusively be confirmed that activity levels are overall higher due to (constant) hunting disturbances. There is an indication of a drop in activity during April to June but this can also be correlated to availability of certain crop types that potentially simplifies foraging. As such, H 2.2 could neither be validated nor falsified. Further investigations with more and more detailed data is required in this case.
+
+## Conclusion
+
+Conclusively it is apparent that there are seasonal patterns in the activity and the spatial and temporal are present. However, it is difficult to associate these patterns directly to the hunting season. One of the reasons is the fact that it is difficult to associate the activity behaviour with actual hunting events. Moreover, the data sampling with 6 animals is rather low. The dirunal pattern found e.g. by @thurfjell2014 that wild boar is overall more active during night than day in Sweden was also found for wild boar in Switzerland with higher activity levels during dusk and the first half of the night than during the day.
 
 # References
 
-Fischer, C., Gourdin, H., & Obermann, M. (2004). Spatial behaviour of the wild boar in Geneva, Switzerland: testing methods and first results. Galemys, 16, 149-155.
-
-Laube, P., & Purves, R. S. (2011). How fast is a cow? Cross‐scale analysis of movement data. Transactions in GIS, 15(3), 401-418.
-
-Kahle, D. J., & Wickham, H. (2013). ggmap: spatial visualization with ggplot2. R J., 5(1), 144.
-
-Macdonald, D. (2001). The new encyclopedia of mammals. Oxford: Oxford University Press.
-
-Niethammer, J. & Krapp, F. (1986). Handbuch der Säugetiere Europas. Wiesbaden: Aula-Verlag.
-
-Pimentel, D., McNair, S., Janecka, J., Wightman, J., Simmonds, C., O’Connell, C., Wong, E., Russel, L., Zern, J., Aquino, T. & Tsomondo, T. (2001). Economic and environmental threats of alien plant, animal, and microbe invasions. Agr. Ecosyst. Environ. 84: 1–20.
-
-Sodeikat, G., & Pohlmeyer, K. (2003). Escape movements of family groups of wild boar Sus scrofa influenced by drive hunts in Lower Saxony, Germany. Wildlife Biology, 9(4), 43-49.
-
-Thurfjell, H., Ball, J. P., Åhlén, P. A., Kornacher, P., Dettki, H., & Sjöberg, K. (2009). Habitat use and spatial patterns of wild boar Sus scrofa (L.): agricultural fields and edges. European journal of wildlife research, 55(5), 517-523.
-
-Thurfjell, H., Spong, G., & Ericsson, G. (2014). Effects of weather, season, and daylight on female wild boar movement. Acta Theriologica, 59(3), 467-472.
-
-
+::: {#refs}
+:::
 
 **Sources**
 
@@ -613,8 +677,12 @@ Thurfjell, H., Spong, G., & Ericsson, G. (2014). Effects of weather, season, and
 
 -   Bern: <https://www.weu.be.ch/de/start/themen/jagd-fischerei/jagd-wildtiere/jagen-kanton-bern/jagdzeiten.html>
 
+    -   E-mail exchange with Amt für Landwirtschaft und Natur, Jagdinspektorat
+
 -   Freiburg: <https://www.fr.ch/de/sport-und-freizeit/sport-und-freizeit/jagd>
 
     -   <https://www.fr.ch/de/sport-und-freizeit/sport-und-freizeit/informationen-und-jagdperioden>
 
     -   <https://map.geo.fr.ch/?fileUrl=https%3A//map.geo.fr.ch/kmz/reserves_cant_faune_KMZ.kmz&lang=de>
+
+-   Vaud: <https://www.vd.ch/fileadmin/user_upload/themes/environnement/faune_nature/fichiers_pdf/Chasse/04_Informations_utiles_aux_chasseurs/Annexe_1_modif_dates_provisoires_chasse_2021_2022.pdf>
